@@ -23,7 +23,7 @@ so using it on shell initialization is also not a very large bottleneck.
 
 #### Using multiple pokemon
 
-`pokeget bulbasaur pikachu random`
+`pokeget bulbasaur pikachu`
 
 #### Using pokedex ID's
 
@@ -32,6 +32,22 @@ so using it on shell initialization is also not a very large bottleneck.
 #### Using alternative forms
 
 `pokeget raichu sandslash meowth --alolan`
+
+#### Using random
+```bash
+# Get any random pokemon
+pokeget random
+
+# Get a random pokemon from a specific region
+pokeget random kanto
+
+# Get multiple random pokemon
+pokeget random 3 charmander sinnoh kanto
+```
+
+#### Using stdin
+`echo 1 charmander | pokeget -`
+
 
 ## Installation
 
