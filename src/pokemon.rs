@@ -8,6 +8,35 @@ use crate::{cli::Args, list::List, Data};
 
 const DEFAULT_SHINY_RATE: u32 = 8192;
 
+/// Enum used to store regions
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum Region {
+    Kanto,
+    Johto,
+    Hoenn,
+    Sinnoh,
+    Unova,
+    Kalos,
+    Alola,
+    Galar,
+}
+
+impl Region {
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            "kanto" => Some(Region::Kanto),
+            "johto" => Some(Region::Johto),
+            "hoenn" => Some(Region::Hoenn),
+            "sinnoh" => Some(Region::Sinnoh),
+            "unova" => Some(Region::Unova),
+            "kalos" => Some(Region::Kalos),
+            "alola" => Some(Region::Alola),
+            "galar" => Some(Region::Galar),
+            _ => None,
+        }
+    }
+}
+
 /// Enum used to represent the type of random sources
 #[derive(Debug, Clone)]
 pub enum RandomType {
@@ -29,7 +58,7 @@ impl RandomType {
                 let mut rng = rand::thread_rng();
                 let index = rng.gen_range(0..options.len());
 
-                let selection = Selection::parse(options[index].clone());
+                let selection = Selection::parse_from_random(options[index].clone());
                 selection.eval(list)
             }
         }
@@ -46,6 +75,9 @@ pub enum Selection {
 
     /// When a pokemon name/id is selected.
     Name(String),
+
+    /// When a region pokemon is selected.
+    Region(Region),
 }
 
 impl Selection {
@@ -66,6 +98,13 @@ impl Selection {
             Selection::Name(arg)
         }
     }
+    
+    pub fn parse_from_random(arg: String) -> Self {
+        if let Some(region) = Region::from_str(&arg) {
+            return Selection::Region(region);
+        }
+        Self::parse(arg)
+    }
 
     /// Evaluates the selection and returns a pokemon filename.
     pub fn eval(self, list: &List) -> String {
@@ -79,6 +118,7 @@ impl Selection {
                 })
                 .clone(),
             Selection::Name(name) => name,
+            Selection::Region(region) => list.get_by_region(&region),
         }
     }
 }
@@ -110,7 +150,11 @@ impl<'a> Pokemon<'a> {
         let path = attributes.path(&name);
         let bytes = Data::get(&path)
             .unwrap_or_else(|| {
-                eprintln!("pokemon not found");
+                if Region::from_str(&name).is_some() {
+                    eprintln!("{} is a region name. To get a random pokemon from this region, use `pokeget random {}`", name, name);
+                } else {
+                    eprintln!("pokemon not found");
+                }
                 exit(1)
             })
             .data
