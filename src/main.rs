@@ -1,12 +1,27 @@
 //! Display pokemon sprites in your terminal.
 
-use std::io::{BufReader, Read};
 use clap::Parser;
 use pokeget::cli::Args;
+use pokeget::cli::Commands;
 use pokeget::list::List;
+use pokeget::pokemon::RandomType;
 use pokeget::pokemon::{Attributes, Pokemon};
 use pokeget::sprites::combine_sprites;
+use std::io::{BufReader, Read};
 use std::process::exit;
+
+fn read_from_stdin() -> Vec<String> {
+    let stdin = std::io::stdin();
+    let mut reader = BufReader::new(stdin.lock());
+    let mut buf = String::new();
+
+    if let Err(e) = reader.read_to_string(&mut buf) {
+        eprintln!("Error reading from stdin: {}", e);
+        exit(1);
+    }
+
+    buf.split_whitespace().map(|x| x.to_string()).collect()
+}
 
 fn main() {
     let list = List::read();
@@ -14,29 +29,41 @@ fn main() {
 
     let attributes = Attributes::new(&args);
 
-    let input_pokemon = if args.pokemon[0] == "-" {
-        let stdin = std::io::stdin();
-        let mut reader = BufReader::new(stdin.lock());
-        let mut buf = String::new();
+    let pokemons = match &args.command {
+        // handle random subcommand
+        Some(Commands::Random { pokemon }) => {
+            // if - then read from stdin
+            let pokemon_list = if pokemon.contains(&"-".to_string()) {
+                read_from_stdin()
+            } else {
+                pokemon.clone()
+            };
+            // if pokemon list is empty - then get any random pokemon, if not - then get random from list
+            let random_type = match pokemon_list.as_slice() {
+                [] => RandomType::Any,
+                _ => RandomType::FromList(pokemon_list),
+            };
 
-        if let Err(e) = reader.read_to_string(&mut buf) {
-            eprintln!("Error reading from stdin: {}", e);
-            exit(1);
+            vec![Pokemon::new_from_random(&random_type, &list, &attributes)]
         }
-        buf.split_whitespace().map(|x| x.to_string()).collect()
-    } else {
-        args.pokemon
+        None => {
+            let input_pokemon = if args.pokemon.contains(&"-".to_string()) {
+                read_from_stdin()
+            } else {
+                args.pokemon.clone()
+            };
+
+            if input_pokemon.is_empty() {
+                eprintln!("you must specify the pokemon you want to display");
+                exit(1);
+            }
+
+            input_pokemon
+                .into_iter()
+                .map(|x| Pokemon::new(x, &list, &attributes))
+                .collect()
+        }
     };
-
-    if input_pokemon.is_empty() {
-        eprintln!("you must specify the pokemon you want to display");
-        exit(1);
-    }
-
-    let pokemons: Vec<Pokemon> = input_pokemon
-        .into_iter()
-        .map(|x| Pokemon::new(x, &list, &attributes))
-        .collect();
 
     let combined = combine_sprites(&pokemons);
 

@@ -1,8 +1,20 @@
-use clap::Parser;
+use clap::{Parser, Subcommand};
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    /// Display random pokemon
+    Random {
+        /// List of pokemon or IDs to randomly select from
+        #[arg(default_values_t = Vec::<String>::new())]
+        pokemon: Vec<String>,
+    },
+}
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
+    #[command(subcommand)]
+    pub command: Option<Commands>,
+
     /// The pokemon to display, use "random" to get a random pokemon
     pub pokemon: Vec<String>,
 

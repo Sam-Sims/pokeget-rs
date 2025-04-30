@@ -8,14 +8,39 @@ use crate::{cli::Args, list::List, Data};
 
 const DEFAULT_SHINY_RATE: u32 = 8192;
 
+/// Enum used to represent the type of random sources
+#[derive(Debug, Clone)]
+pub enum RandomType {
+    /// Select any valid random Pokémon
+    Any,
+    /// Select randomly from a specific list of Pokémon
+    FromList(Vec<String>),
+}
+
+impl RandomType {
+    pub fn get_random(&self, list: &List) -> String {
+        match self {
+            RandomType::Any => list.random(),
+            RandomType::FromList(options) => {
+                if options.is_empty() {
+                    return list.random();
+                }
+
+                let mut rng = rand::thread_rng();
+                let index = rng.gen_range(0..options.len());
+
+                let selection = Selection::parse(options[index].clone());
+                selection.eval(list)
+            }
+        }
+    }
+}
+
 /// Enum used to assist parsing user input.
 ///
 /// It can sort all types of inputs, and then evaluate them to a filename.
 #[derive(PartialEq, Eq)]
 pub enum Selection {
-    /// When a random pokemon is selected (`0` or `random`).
-    Random,
-
     /// When a DexID is selected (number larger than 0).
     DexId(usize),
 
@@ -29,31 +54,27 @@ impl Selection {
         if let Ok(dex_id) = arg.parse::<usize>() {
             match dex_id {
                 // If it's zero, then change it to random.
-                0 => Selection::Random,
+                0 => Selection::DexId(0),
 
                 // If it's not zero and in the range of the list, then it's a dex id.
-                id if (id > 0) => Selection::DexId(id - 1),
+                id if (id > 0) => Selection::DexId(id),
 
                 // This shouldn't normally fire, but it's here to give the proper error message.
                 _ => Selection::Name(arg),
             }
         } else {
-            match arg.as_str() {
-                "random" => Selection::Random,
-                _ => Selection::Name(arg),
-            }
+            Selection::Name(arg)
         }
     }
 
     /// Evaluates the selection and returns a pokemon filename.
     pub fn eval(self, list: &List) -> String {
         match self {
-            Selection::Random => list.random(),
+            Selection::DexId(0) => list.random(),
             Selection::DexId(id) => list
-                .get_by_id(id)
+                .get_by_id(id - 1)
                 .unwrap_or_else(|| {
-                    // add 1 to id so that error message matches user input
-                    eprintln!("{} is not a valid pokedex ID", id + 1);
+                    eprintln!("{} is not a valid pokedex ID", id);
                     exit(1)
                 })
                 .clone(),
@@ -84,10 +105,36 @@ impl<'a> Pokemon<'a> {
     /// This also fetches the sprite & formats the name.
     pub fn new(arg: String, list: &List, attributes: &'a Attributes) -> Self {
         let selection = Selection::parse(arg);
-        let is_random = selection == Selection::Random;
         let name = selection.eval(list);
 
-        let path = attributes.path(&name, is_random);
+        let path = attributes.path(&name);
+        let bytes = Data::get(&path)
+            .unwrap_or_else(|| {
+                eprintln!("pokemon not found");
+                exit(1)
+            })
+            .data
+            .into_owned();
+
+        let img = image::load_from_memory(&bytes).unwrap();
+        let trimmed = showie::trim(&img);
+
+        Self {
+            path,
+            name: list.format_name(&name),
+            sprite: trimmed,
+            attributes,
+        }
+    }
+
+    pub fn new_from_random(
+        random_type: &RandomType,
+        list: &List,
+        attributes: &'a Attributes,
+    ) -> Self {
+        let name = random_type.get_random(list);
+
+        let path = attributes.path(&name);
         let bytes = Data::get(&path)
             .unwrap_or_else(|| {
                 eprintln!("pokemon not found");
@@ -163,11 +210,11 @@ impl Attributes {
     }
 
     /// Formats the attributes and a filename from a [Selection] into a completed path.
-    pub fn path(&self, name: &str, random: bool) -> String {
+    pub fn path(&self, name: &str) -> String {
         let mut filename = name.to_owned();
 
         // The form shouldn't be applied to random pokemon.
-        if !self.form.is_empty() && !random {
+        if !self.form.is_empty() {
             filename.push_str(&format!("-{}", self.form));
         }
 
@@ -180,11 +227,7 @@ impl Attributes {
         let path = format!(
             "{}/{}{}.png",
             if self.shiny { "shiny" } else { "regular" },
-            if self.female && !random {
-                "female/"
-            } else {
-                ""
-            }, // Random pokemon also shouldn't follow the female rule.
+            if self.female { "female/" } else { "" }, // Random pokemon also shouldn't follow the female rule.
             filename.trim()
         );
 
