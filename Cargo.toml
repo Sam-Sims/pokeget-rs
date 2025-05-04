@@ -1,6 +1,6 @@
 [package]
 name = "pokeget"
-authors = [ "talwat" ]
+authors = ["talwat", "sam-sims"]
 version = "1.6.4"
 edition = "2021"
 description = "Display pokemon sprites in your terminal."
@@ -28,3 +28,6 @@ image = { version = "0.24.9", default-features = false, features = [
 rand = "0.8.5"
 rust-embed = { version = "8.5.0" }
 showie = "1.0.1"
+serde = { version = "1.0.206", features = ["derive"] }
+toml = "0.8.22"
+dirs = "6.0.0"

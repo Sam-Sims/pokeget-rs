@@ -4,7 +4,6 @@ use std::io::Cursor;
 
 use bimap::BiHashMap;
 use inflector::Inflector;
-use rand::Rng;
 
 /// A parsed representation of `names.csv`.
 ///
@@ -12,7 +11,7 @@ use rand::Rng;
 /// format image filenames back into proper pokemon names.
 pub struct List {
     /// The Pokedex IDs and their corresponding filenames.
-    ids: BiHashMap<usize, String>,
+    pub ids: BiHashMap<usize, String>,
 
     /// All the proper, formatted names in order of Pokedex ID.
     names: Vec<String>,
@@ -67,13 +66,5 @@ impl List {
     /// Gets a pokemon filename by a Dex ID.
     pub fn get_by_id(&self, id: usize) -> Option<&String> {
         self.ids.get_by_left(&id)
-    }
-
-    /// Gets a random pokemon & returns it's filename.
-    pub fn random(&self) -> String {
-        let mut rand = rand::thread_rng();
-
-        let idx = rand.gen_range(0..self.ids.len());
-        self.ids.get_by_left(&idx).unwrap().clone()
     }
 }

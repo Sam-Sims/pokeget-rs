@@ -1,6 +1,14 @@
 # pokeget-rs
 
-A better rust version of pokeget.
+A fork of [pokeget-rs](https://github.com/talwat/pokeget-rs) that adds some extra functionality, primarily for streamlining
+the experience when using it in programmes such as fastfetch.
+
+Adds the following features:
+- Supports reading stdin as input.
+- Extends pokeget into 2 subcommands: `pokeget pokemon` and `pokeget random`.
+- `pokeget pokemon` will show the sprite of the given pokemon, as per default pokeget.
+- `pokeget random` will show a random pokemon sprite, with the ability specify a region, or provide a custom list of
+  favorites to pick from.
 
 ## Usage
 
@@ -23,7 +31,7 @@ so using it on shell initialization is also not a very large bottleneck.
 
 #### Using multiple pokemon
 
-`pokeget bulbasaur pikachu random`
+`pokeget bulbasaur pikachu`
 
 #### Using pokedex ID's
 
@@ -32,6 +40,22 @@ so using it on shell initialization is also not a very large bottleneck.
 #### Using alternative forms
 
 `pokeget raichu sandslash meowth --alolan`
+
+#### Using random
+```bash
+# Get any random pokemon
+pokeget random
+
+# Get a random pokemon from a specific region
+pokeget random kanto
+
+# Get multiple random pokemon
+pokeget random 3 charmander sinnoh kanto
+```
+
+#### Using stdin
+`echo 1 charmander | pokeget -`
+
 
 ## Installation
 
