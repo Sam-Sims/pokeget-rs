@@ -3,6 +3,7 @@
 use clap::Parser;
 use pokeget::cli::Args;
 use pokeget::cli::Commands;
+use pokeget::config::Config;
 use pokeget::list::List;
 use pokeget::pokemon::RandomType;
 use pokeget::pokemon::{Attributes, Pokemon};
@@ -23,8 +24,15 @@ fn read_from_stdin() -> Vec<String> {
     buf.split_whitespace().map(|x| x.to_string()).collect()
 }
 
+fn expand_arguments(args: &[String], config: &Config) -> Vec<String> {
+    args.iter()
+        .flat_map(|arg| config.expand_list(arg).unwrap_or_else(|| vec![arg.clone()]))
+        .collect()
+}
+
 fn main() {
     let list = List::read();
+    let config = Config::load();
     let args = Args::parse();
 
     let attributes = Attributes::new(&args);
@@ -32,16 +40,16 @@ fn main() {
     let pokemons = match &args.command {
         // handle random subcommand
         Some(Commands::Random { pokemon }) => {
-            // if - then read from stdin
             let pokemon_list = if pokemon.contains(&"-".to_string()) {
                 read_from_stdin()
             } else {
                 pokemon.clone()
             };
-            // if pokemon list is empty - then get any random pokemon, if not - then get random from list
-            let random_type = match pokemon_list.as_slice() {
+
+            let expanded_pokemon_list = expand_arguments(&pokemon_list, &config);
+            let random_type = match expanded_pokemon_list.as_slice() {
                 [] => RandomType::Any,
-                _ => RandomType::List(pokemon_list),
+                _ => RandomType::List(expanded_pokemon_list),
             };
 
             vec![Pokemon::new_from_random(&random_type, &list, &attributes)]
@@ -54,7 +62,9 @@ fn main() {
             } else {
                 pokemon.clone()
             };
-            pokemon_list
+            let expanded_pokemon_list = expand_arguments(&pokemon_list, &config);
+
+            expanded_pokemon_list
                 .iter()
                 .map(|x| Pokemon::new(x.to_string(), &list, &attributes))
                 .collect()
