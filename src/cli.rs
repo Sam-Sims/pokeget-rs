@@ -7,6 +7,13 @@ pub enum Commands {
         #[arg(default_values_t = Vec::<String>::new())]
         pokemon: Vec<String>,
     },
+
+    /// Display specific pokemon
+    Pokemon {
+        /// List of pokemon or IDs to display
+        #[arg(default_values_t = Vec::<String>::new())]
+        pokemon: Vec<String>,
+    },
 }
 
 #[derive(Parser, Debug)]

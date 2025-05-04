@@ -46,22 +46,23 @@ fn main() {
 
             vec![Pokemon::new_from_random(&random_type, &list, &attributes)]
         }
-        None => {
-            let input_pokemon = if args.pokemon.contains(&"-".to_string()) {
+        // handle pokemon subcommand
+        Some(Commands::Pokemon { pokemon }) => {
+            // if - then read from stdin
+            let pokemon_list = if pokemon.contains(&"-".to_string()) {
                 read_from_stdin()
             } else {
-                args.pokemon.clone()
+                pokemon.clone()
             };
-
-            if input_pokemon.is_empty() {
-                eprintln!("you must specify the pokemon you want to display");
-                exit(1);
-            }
-
-            input_pokemon
-                .into_iter()
-                .map(|x| Pokemon::new(x, &list, &attributes))
+            pokemon_list
+                .iter()
+                .map(|x| Pokemon::new(x.to_string(), &list, &attributes))
                 .collect()
+        }
+        // handle no subcommand
+        None => {
+            eprintln!("No pokemon specified. Use `pokeget random` to get a random pokemon.");
+            exit(1);
         }
     };
 
