@@ -18,7 +18,7 @@ lto = "thin"
 strip = "symbols"
 
 [dependencies]
-inflector = "0.11.4"
+Inflector = "0.11.4"
 bimap = "0.6.3"
 clap = { version = "4.5.14", features = ["derive"] }
 csv = "1.3.0"
