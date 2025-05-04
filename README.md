@@ -63,7 +63,7 @@ This makes it easy to create custom random pools with exactly the Pokémon you w
 
 ## Custom Lists
 
-Create your own Pokémon lists by adding them to a config file:
+You can create your own Pokémon lists by adding them to the config file:
 
 File location: `~/.config/pokeget/config.toml`
 
@@ -87,6 +87,21 @@ Using your custom lists:
 - `pokeget pokemon starters legendaries` - Display all Pokémon from both lists
 - `pokeget random starters kanto 25` - Choose randomly from starters list, any Kanto Pokémon, or Pikachu
 
+## Stdin Support
+
+Pokeget supports reading input from stdin using the `-` argument:
+
+```bash
+# Pipe Pokémon names to pokeget
+echo "pikachu charizard" | pokeget pokemon -
+
+# Pipe a list of Pokémon for random selection
+cat my_pokemon_list.txt | pokeget random -
+```
+
+The stdin input is treated the same as command-line arguments, so it can include Pokémon names, IDs, region names, or
+custom list names.
+
 ## Additional Options
 
 For more customization options, run:
@@ -95,7 +110,7 @@ For more customization options, run:
 pokeget --help
 ```
 
-### .bashrc
+## .bashrc
 
 If you're using pokeget on shell startup, such as in `.bashrc`,
 then instead of running `pokeget <pokemon>`, you can write the output
@@ -105,37 +120,6 @@ and then have something like `cat file.txt` in your bashrc.
 This makes your shell initialization practically instant, but obviously
 won't work with random pokemon. pokeget is already fairly fast,
 so using it on shell initialization is also not a very large bottleneck.
-
-### Examples
-
-#### Using multiple pokemon
-
-`pokeget bulbasaur pikachu`
-
-#### Using pokedex ID's
-
-`pokeget 1 2 3`
-
-#### Using alternative forms
-
-`pokeget raichu sandslash meowth --alolan`
-
-#### Using random
-
-```bash
-# Get any random pokemon
-pokeget random
-
-# Get a random pokemon from a specific region
-pokeget random kanto
-
-# Pick one at random from a list
-pokeget random 3 charmander sinnoh kanto
-```
-
-#### Using stdin
-
-`echo 1 charmander | pokeget -`
 
 ## Installation
 
@@ -202,7 +186,7 @@ in small terminal windows, so there was little use in keeping them.
 
 ## Credits
 
-The original pokeget was made by [talwat](https://github.com/talwat/pokeget-rs)
+The original pokeget-rs was made by [talwat](https://github.com/talwat/pokeget-rs)
 
 This time, the sprites are from [pokesprite](https://github.com/msikma/pokesprite) and pokeget uses them with a git
 submodule.
