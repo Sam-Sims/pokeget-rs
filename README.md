@@ -1,6 +1,14 @@
 # pokeget-rs
 
-A better rust version of pokeget.
+A fork of [pokeget-rs](https://github.com/talwat/pokeget-rs) that adds some extra functionality, primarily for streamlining
+the experience when using it in programmes such as fastfetch.
+
+Adds the following features:
+- Supports reading stdin as input.
+- Extends pokeget into 2 subcommands: `pokeget pokemon` and `pokeget random`.
+- `pokeget pokemon` will show the sprite of the given pokemon, as per default pokeget.
+- `pokeget random` will show a random pokemon sprite, with the ability specify a region, or provide a custom list of
+  favorites to pick from.
 
 ## Usage
 
