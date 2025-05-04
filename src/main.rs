@@ -41,7 +41,7 @@ fn main() {
             // if pokemon list is empty - then get any random pokemon, if not - then get random from list
             let random_type = match pokemon_list.as_slice() {
                 [] => RandomType::Any,
-                _ => RandomType::FromList(pokemon_list),
+                _ => RandomType::List(pokemon_list),
             };
 
             vec![Pokemon::new_from_random(&random_type, &list, &attributes)]

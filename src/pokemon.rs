@@ -1,3 +1,4 @@
+pub use crate::random::RandomType;
 use std::process::exit;
 
 use image::DynamicImage;
@@ -37,34 +38,6 @@ impl Region {
     }
 }
 
-/// Enum used to represent the type of random sources
-#[derive(Debug, Clone)]
-pub enum RandomType {
-    /// Select any valid random Pokémon
-    Any,
-    /// Select randomly from a specific list of Pokémon
-    FromList(Vec<String>),
-}
-
-impl RandomType {
-    pub fn get_random(&self, list: &List) -> String {
-        match self {
-            RandomType::Any => list.random(),
-            RandomType::FromList(options) => {
-                if options.is_empty() {
-                    return list.random();
-                }
-
-                let mut rng = rand::thread_rng();
-                let index = rng.gen_range(0..options.len());
-
-                let selection = Selection::parse_from_random(options[index].clone());
-                selection.eval(list)
-            }
-        }
-    }
-}
-
 /// Enum used to assist parsing user input.
 ///
 /// It can sort all types of inputs, and then evaluate them to a filename.
@@ -95,21 +68,21 @@ impl Selection {
                 _ => Selection::Name(arg),
             }
         } else {
-            Selection::Name(arg)
+            if let Some(region) = Region::from_str(&arg) {
+                Selection::Region(region)
+            } else {
+                Selection::Name(arg)
+            }
         }
-    }
-    
-    pub fn parse_from_random(arg: String) -> Self {
-        if let Some(region) = Region::from_str(&arg) {
-            return Selection::Region(region);
-        }
-        Self::parse(arg)
     }
 
     /// Evaluates the selection and returns a pokemon filename.
     pub fn eval(self, list: &List) -> String {
         match self {
-            Selection::DexId(0) => list.random(),
+            Selection::DexId(0) => {
+                let random_type = RandomType::Any;
+                random_type.parse_random(list)
+            }
             Selection::DexId(id) => list
                 .get_by_id(id - 1)
                 .unwrap_or_else(|| {
@@ -118,7 +91,10 @@ impl Selection {
                 })
                 .clone(),
             Selection::Name(name) => name,
-            Selection::Region(region) => list.get_by_region(&region),
+            Selection::Region(region) => {
+                let random_type = RandomType::Region(region);
+                random_type.parse_random(list)
+            }
         }
     }
 }
@@ -176,7 +152,7 @@ impl<'a> Pokemon<'a> {
         list: &List,
         attributes: &'a Attributes,
     ) -> Self {
-        let name = random_type.get_random(list);
+        let name = random_type.parse_random(list);
 
         let path = attributes.path(&name);
         let bytes = Data::get(&path)
