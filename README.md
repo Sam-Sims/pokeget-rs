@@ -1,20 +1,99 @@
 # pokeget-rs
 
-A fork of [pokeget-rs](https://github.com/talwat/pokeget-rs) that adds some extra functionality, primarily for streamlining
+A fork of [pokeget-rs](https://github.com/talwat/pokeget-rs) that adds some extra functionality, primarily for
+streamlining
 the experience when using it in programmes such as fastfetch.
 
 Adds the following features:
+
 - Supports reading stdin as input.
 - Extends pokeget into 2 subcommands: `pokeget pokemon` and `pokeget random`.
 - `pokeget pokemon` will show the sprite of the given pokemon, as per default pokeget.
 - `pokeget random` will show a random pokemon sprite, with the ability specify a region, or provide a custom list of
   favorites to pick from.
 
-## Usage
+# Pokeget
 
-`pokeget <pokemon>`
+Display Pokémon sprites in your terminal.
 
-For more info, run `pokeget --help`.
+## Basic Usage
+
+### Display Specific Pokémon
+
+```
+pokeget pokemon <pokemon>
+```
+
+Show the sprite of specified Pokémon. You can use either names or Pokédex IDs.
+
+Example: `pokeget pokemon pikachu bulbasaur 150`  
+*Displays sprites for Pikachu, Bulbasaur, and Mewtwo together*
+
+### Display Random Pokémon
+
+```
+pokeget random [options]
+```
+
+Choose one random Pokémon from your input options.
+
+Options can be:
+
+- Nothing (blank): Random Pokémon from entire Pokédex
+- Region names: `kanto`, `johto`, `hoenn`, `sinnoh`, `unova`, `kalos`, `alola`, `galar`
+- Specific Pokémon names or IDs
+- Custom lists defined in your config
+
+**Important:** When using `pokeget random`, all inputs are combined into a single pool from which one Pokémon is
+randomly selected. This allows you to mix:
+
+- Individual Pokémon names/IDs
+- Entire regions
+- Custom lists from your config
+
+Example: `pokeget random kanto bulbasaur charizard favorites`
+*Will randomly select ONE from:*
+
+- Any Kanto Pokémon (151 possibilities)
+- Bulbasaur
+- Charizard
+- Any Pokémon defined in your "favorites" list
+
+This makes it easy to create custom random pools with exactly the Pokémon you want.
+
+## Custom Lists
+
+Create your own Pokémon lists by adding them to a config file:
+
+File location: `~/.config/pokeget/config.toml`
+
+Example config:
+
+```toml
+[starters]
+pokemon = ["1", "4", "7", "152", "155", "158"]
+
+[legendaries]
+pokemon = ["144", "145", "146", "150", "151"]
+
+[favorites]
+pokemon = ["25", "149", "sinnoh"]
+```
+
+Using your custom lists:
+
+- `pokeget pokemon starters` - Display all Pokémon in your "starters" list
+- `pokeget random favorites` - Display one random Pokémon from your "favorites" list
+- `pokeget pokemon starters legendaries` - Display all Pokémon from both lists
+- `pokeget random starters kanto 25` - Choose randomly from starters list, any Kanto Pokémon, or Pikachu
+
+## Additional Options
+
+For more customization options, run:
+
+```
+pokeget --help
+```
 
 ### .bashrc
 
@@ -42,6 +121,7 @@ so using it on shell initialization is also not a very large bottleneck.
 `pokeget raichu sandslash meowth --alolan`
 
 #### Using random
+
 ```bash
 # Get any random pokemon
 pokeget random
@@ -49,40 +129,22 @@ pokeget random
 # Get a random pokemon from a specific region
 pokeget random kanto
 
-# Get multiple random pokemon
+# Pick one at random from a list
 pokeget random 3 charmander sinnoh kanto
 ```
 
 #### Using stdin
-`echo 1 charmander | pokeget -`
 
+`echo 1 charmander | pokeget -`
 
 ## Installation
 
-### Cargo *(recommended)*
+### Manual
 
-The recommended installation method is to use cargo:
-
-```sh
-cargo install pokeget
-```
-
-and making sure `$HOME/.cargo/bin` is added to `$PATH`.
-
-### AUR
-
-If you're on Arch, you can also use the AUR:
+You can clone the repository and compile manually by doing:
 
 ```sh
-yay -S pokeget
-```
-
-### Git
-
-You can also clone the repository and compile manually by doing:
-
-```sh
-git clone --recurse-submodules https://github.com/talwat/pokeget-rs.git
+git clone --recurse-submodules https://github.com/sam-sims/pokeget-rs.git
 cd pokeget-rs
 cargo build --release
 mv target/release/pokeget ~/.local/bin
@@ -110,7 +172,7 @@ fish_add_path <path>
 
 ## Updating
 
-Just rerun `cargo install pokeget` or `git pull` on the repository and then recompile.
+Just rerun `git pull` on the repository and then recompile.
 
 ## Why?
 
@@ -140,7 +202,10 @@ in small terminal windows, so there was little use in keeping them.
 
 ## Credits
 
-This time, the sprites are from [pokesprite](https://github.com/msikma/pokesprite) and pokeget uses them with a git submodule.
+The original pokeget was made by [talwat](https://github.com/talwat/pokeget-rs)
+
+This time, the sprites are from [pokesprite](https://github.com/msikma/pokesprite) and pokeget uses them with a git
+submodule.
 
 Sprites are embedded into the binary, so pokeget won't download them. This is a good compromise,
 since while the binary may be large, pokeget can execute almost instantly and while offline.
@@ -148,5 +213,6 @@ since while the binary may be large, pokeget can execute almost instantly and wh
 ## License
 
 pokeget uses the MIT license, so feel free to fork it and customize it as you please.
-If you're unsure about any of the internal workings of pokeget, [open an issue](https://github.com/talwat/pokeget-rs/issues),
+If you're unsure about any of the internal workings of
+pokeget, [open an issue](https://github.com/talwat/pokeget-rs/issues),
 and I'll answer whatever question you might have.
